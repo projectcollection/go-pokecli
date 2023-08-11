@@ -9,9 +9,9 @@ import (
 )
 
 type Data struct {
-	Count    int        `json:"count"`
-	Next     string     `json:"next"`
-	Previous any        `json:"previous"`
+	Count    int       `json:"count"`
+	Next     string    `json:"next"`
+	Previous any       `json:"previous"`
 	Results  []Results `json:"results"`
 }
 type Results struct {
@@ -24,47 +24,107 @@ const (
 	limit    = 20
 )
 
-func Map(dir string) ([]string, error) {
-	locations := []string{}
-
-	if dir != "<" && dir != ">" {
-		return locations, errors.New("dir only accepts '<' or '>'")
-	}
-
+func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
 	offset := 0
 
-	if dir == ">" {
-		res, err := http.Get(fmt.Sprintf(location, offset, limit))
+	//0 for backward, 1 for forward
+	lastcall := 1
 
-		if err != nil {
-			return locations, errors.New("something went wrong fetching locations")
+	return func() ([]string, error) {
+			locations := []string{}
+
+			fmt.Println(offset)
+
+			res, err := http.Get(fmt.Sprintf(location, offset, limit))
+
+			if err != nil {
+				return locations, errors.New("something went wrong fetching locations")
+			}
+
+			body, err := io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if err != nil {
+				return locations, err
+			}
+
+			if res.StatusCode > 299 {
+				return locations, errors.New(fmt.Sprintf("failed with status code: %d and body: %s", res.StatusCode, body))
+			}
+
+			data := Data{}
+			err = json.Unmarshal(body, &data)
+
+			if err != nil {
+				return locations, err
+			}
+
+			for _, location := range data.Results {
+				locations = append(locations, location.Name)
+			}
+
+			offset += limit
+			lastcall = 1
+
+			return locations, nil
+		},
+
+		func() ([]string, error) {
+			locations := []string{}
+
+			if lastcall > 0 {
+				offset -= 2 * limit
+			} else {
+				offset -= limit
+			}
+
+			fmt.Println("backing up", offset)
+
+			if offset < 0 {
+				offset = 0
+				return locations, errors.New("no previous locations")
+			}
+
+			res, err := http.Get(fmt.Sprintf(location, offset, limit))
+
+			if err != nil {
+				return locations, errors.New("something went wrong fetching locations")
+			}
+
+			body, err := io.ReadAll(res.Body)
+			res.Body.Close()
+
+			if err != nil {
+				return locations, err
+			}
+
+			if res.StatusCode > 299 {
+				return locations, errors.New(fmt.Sprintf("failed with status code: %d and body: %s", res.StatusCode, body))
+			}
+
+			data := Data{}
+			err = json.Unmarshal(body, &data)
+
+			if err != nil {
+				return locations, err
+			}
+
+			for _, location := range data.Results {
+				locations = append(locations, location.Name)
+			}
+
+			lastcall = 0
+
+			return locations, nil
 		}
+}
 
-		body, err := io.ReadAll(res.Body)
-		res.Body.Close()
+var forwardMap, backwardMap = newMapBrowser()
 
-		if err != nil {
-			return locations, err
-		}
+func Map() ([]string, error) {
+	return forwardMap()
+}
 
-		if res.StatusCode > 299 {
-			return locations, errors.New(fmt.Sprint("failed with status code: %d and body: %s", res.StatusCode, body))
-		}
-
-		data := Data{}
-
-		err = json.Unmarshal(body, &data)
-
-		if err != nil {
-			return locations, err
-		}
-
-        for _, location := range data.Results {
-            locations = append(locations, location.Name)
-        }
-
-        return locations, nil
-	}
-
-    return locations, nil
+func Mapb() ([]string, error) {
+	return backwardMap()
 }

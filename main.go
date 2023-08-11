@@ -40,15 +40,18 @@ var commands map[string]command = map[string]command{
 		name:        "map",
 		description: "list next 20 maps",
 		cb: func() error {
-			locations, err := pokeapi.Map(">")
+			locations, err := pokeapi.Map()
 
 			if err != nil {
 				fmt.Println(err)
+				return err
 			}
 
 			for _, location := range locations {
 				fmt.Println(location)
 			}
+
+            fmt.Println("")
 
 			return nil
 		},
@@ -57,6 +60,19 @@ var commands map[string]command = map[string]command{
 		name:        "mapb",
 		description: "list previous 20 maps",
 		cb: func() error {
+			locations, err := pokeapi.Mapb()
+
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+
+			for _, location := range locations {
+				fmt.Println(location)
+			}
+
+            fmt.Println("")
+
 			return nil
 		},
 	},
@@ -75,7 +91,7 @@ func main() {
 	scanner := bufio.NewScanner(reader)
 
 	for {
-		fmt.Print("pokedex> ")
+		fmt.Print("pokedex ---> ")
 		scanner.Scan()
 
 		text := scanner.Text()
