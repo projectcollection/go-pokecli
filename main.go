@@ -51,7 +51,7 @@ var commands map[string]command = map[string]command{
 				fmt.Println(location)
 			}
 
-            fmt.Println("")
+			fmt.Println("")
 
 			return nil
 		},
@@ -71,7 +71,7 @@ var commands map[string]command = map[string]command{
 				fmt.Println(location)
 			}
 
-            fmt.Println("")
+			fmt.Println("")
 
 			return nil
 		},
