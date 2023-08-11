@@ -3,9 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	pokeapi "github.com/projectcollection/pokecli/internals/pokeapi"
 	"os"
 	"strings"
-    pokeapi "github.com/projectcollection/pokecli/internals/pokeapi"
 )
 
 type command struct {
@@ -40,15 +40,15 @@ var commands map[string]command = map[string]command{
 		name:        "map",
 		description: "list next 20 maps",
 		cb: func() error {
-            locations, err := pokeapi.Map(">")
+			locations, err := pokeapi.Map(">")
 
-            if err != nil {
-                fmt.Println(err)
-            }
+			if err != nil {
+				fmt.Println(err)
+			}
 
-            for _, location := range locations {
-                fmt.Println(location)
-            }
+			for _, location := range locations {
+				fmt.Println(location)
+			}
 
 			return nil
 		},
@@ -64,7 +64,7 @@ var commands map[string]command = map[string]command{
 		name:        "exit",
 		description: "exit pokecli repl",
 		cb: func() error {
-            os.Exit(3)
+			os.Exit(3)
 			return nil
 		},
 	},
