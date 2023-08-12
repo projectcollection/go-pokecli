@@ -2,10 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
-	pokeapi "github.com/projectcollection/pokecli/internals/pokeapi"
 	"os"
 	"strings"
+	pokeapi "github.com/projectcollection/pokecli/internals/pokeapi"
 )
 
 type command struct {
@@ -79,8 +80,13 @@ var commands map[string]command = map[string]command{
 	"explore": {
 		name:        "explore [location]",
 		description: "explore a location and list pokemons",
-		cb: func(arg []string) error {
-            site := arg[0]
+		cb: func(args []string) error {
+
+            if len(args) == 0 {
+                return errors.New("missing argument")
+            }
+
+            site := args[0]
 			encounters, err := pokeapi.Explore(site)
 
 			if err != nil {
@@ -98,6 +104,21 @@ var commands map[string]command = map[string]command{
 
 			fmt.Println("")
 
+			return nil
+		},
+	},
+	"catch": {
+		name:        "catch [pokemon]",
+		description: "try to catch a pokemon",
+		cb: func(args []string) error {
+
+            if len(args) == 0 {
+                return errors.New("missing argument")
+            }
+
+            pokemon := args[0]
+
+            pokeapi.Catch(pokemon)
 			return nil
 		},
 	},

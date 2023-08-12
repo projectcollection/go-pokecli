@@ -14,8 +14,13 @@ const (
 	baseurl  = "https://pokeapi.co/api/v2"
 	location = baseurl + "/location?offset=%d&limit=%d"
 	site     = baseurl + "/location-area/%s"
+	pokemon  = baseurl + "/pokemon/%s"
 	limit    = 20
 )
+
+var cache = pokecache.NewCache(5 * time.Minute)
+
+var caughtPokemon = make(map[string]PokemonStats)
 
 func decode[T any](body []byte) (T, error) {
 	var data T
@@ -62,5 +67,3 @@ func getData[T any](api string) (T, error) {
 
 	return data, nil
 }
-
-var cache = pokecache.NewCache(5 * time.Minute)
