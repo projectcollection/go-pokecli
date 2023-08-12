@@ -77,8 +77,8 @@ var commands map[string]command = map[string]command{
 		},
 	},
 	"explore": {
-		name:        "explore",
-		description: "list previous 20 maps",
+		name:        "explore [location]",
+		description: "explore a location and list pokemons",
 		cb: func(arg []string) error {
             site := arg[0]
 			encounters, err := pokeapi.Explore(site)
