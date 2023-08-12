@@ -11,7 +11,7 @@ import (
 type command struct {
 	name        string
 	description string
-	cb          func() error
+	cb          func(args []string) error
 }
 
 func helpCmd() error {
@@ -39,7 +39,7 @@ var commands map[string]command = map[string]command{
 	"map": {
 		name:        "map",
 		description: "list next 20 maps",
-		cb: func() error {
+		cb: func(args []string) error {
 			locations, err := pokeapi.Map()
 
 			if err != nil {
@@ -59,7 +59,7 @@ var commands map[string]command = map[string]command{
 	"mapb": {
 		name:        "mapb",
 		description: "list previous 20 maps",
-		cb: func() error {
+		cb: func(arg []string) error {
 			locations, err := pokeapi.Mapb()
 
 			if err != nil {
@@ -76,10 +76,35 @@ var commands map[string]command = map[string]command{
 			return nil
 		},
 	},
+	"explore": {
+		name:        "explore",
+		description: "list previous 20 maps",
+		cb: func(arg []string) error {
+            site := arg[0]
+			encounters, err := pokeapi.Explore(site)
+
+			if err != nil {
+				fmt.Println(err)
+				return err
+			}
+
+
+            fmt.Println("exploring...")
+            fmt.Println("found pokemons:\n")
+
+			for _, encounter := range encounters {
+				fmt.Println(encounter.Pokemon.Name)
+			}
+
+			fmt.Println("")
+
+			return nil
+		},
+	},
 	"exit": {
 		name:        "exit",
 		description: "exit pokecli repl",
-		cb: func() error {
+		cb: func(arg []string) error {
 			os.Exit(3)
 			return nil
 		},
@@ -95,8 +120,12 @@ func main() {
 		scanner.Scan()
 
 		text := scanner.Text()
+		textArr := strings.Split(text, " ")
 
-		_, ok := commands[text]
+		token := textArr[0]
+		args := textArr[1:]
+
+		command, ok := commands[token]
 
 		if text == "help" {
 			helpCmd()
@@ -108,7 +137,7 @@ func main() {
 			continue
 		}
 
-		commands[text].cb()
+		command.cb(args)
 	}
 
 }

@@ -1,16 +1,11 @@
 package pokeapi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	pokecache "github.com/projectcollection/pokecli/internals/pokecache"
-	"io"
-	"net/http"
-	"time"
 )
 
-type Data struct {
+type MapData struct {
 	Count    int       `json:"count"`
 	Next     string    `json:"next"`
 	Previous any       `json:"previous"`
@@ -20,50 +15,6 @@ type Results struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
-
-func decode(body []byte) (Data, error) {
-	data := Data{}
-	err := json.Unmarshal(body, &data)
-
-	return data, err
-}
-
-func getData(api string, cachedData []byte, ok bool) (Data, error) {
-	if ok {
-		data, err := decode(cachedData)
-		if err != nil {
-			return data, err
-		}
-	}
-
-	res, err := http.Get(api)
-
-	if err != nil {
-		return Data{}, errors.New("something went wrong fetching locations")
-	}
-
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-
-	if err != nil {
-		return Data{}, err
-	}
-
-	if res.StatusCode > 299 {
-		return Data{}, errors.New(fmt.Sprintf("failed with status code: %d and body: %s", res.StatusCode, body))
-	}
-
-	cache.Add(api, body)
-	data, err := decode(body)
-
-	if err != nil {
-		return Data{}, err
-	}
-
-	return data, nil
-}
-
-var cache = pokecache.NewCache(5 * time.Minute)
 
 func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
 	offset := 0
@@ -75,8 +26,7 @@ func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
 			locations := []string{}
 
 			api := fmt.Sprintf(location, offset, limit)
-			cachedData, ok := cache.Get(api)
-			data, err := getData(api, cachedData, ok)
+			data, err := getData[MapData](api)
 
 			if err != nil {
 				return locations, err
@@ -107,8 +57,7 @@ func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
 			}
 
 			api := fmt.Sprintf(location, offset, limit)
-			cachedData, ok := cache.Get(api)
-			data, err := getData(api, cachedData, ok)
+			data, err := getData[MapData](api)
 
 			if err != nil {
 				return locations, err
