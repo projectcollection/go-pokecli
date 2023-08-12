@@ -21,11 +21,6 @@ type Results struct {
 	URL  string `json:"url"`
 }
 
-const (
-	location = "https://pokeapi.co/api/v2/location?offset=%d&limit=%d"
-	limit    = 20
-)
-
 func decode(body []byte) (Data, error) {
 	data := Data{}
 	err := json.Unmarshal(body, &data)
