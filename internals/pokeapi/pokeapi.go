@@ -33,6 +33,41 @@ func decode(body []byte) (Data, error) {
 	return data, err
 }
 
+func getData(api string, cachedData []byte, ok bool) (Data, error) {
+	if ok {
+		data, err := decode(cachedData)
+		if err != nil {
+			return data, err
+		}
+	}
+
+	res, err := http.Get(api)
+
+	if err != nil {
+		return Data{}, errors.New("something went wrong fetching locations")
+	}
+
+	body, err := io.ReadAll(res.Body)
+	res.Body.Close()
+
+	if err != nil {
+		return Data{}, err
+	}
+
+	if res.StatusCode > 299 {
+		return Data{}, errors.New(fmt.Sprintf("failed with status code: %d and body: %s", res.StatusCode, body))
+	}
+
+	cache.Add(api, body)
+	data, err := decode(body)
+
+	if err != nil {
+		return Data{}, err
+	}
+
+	return data, nil
+}
+
 var cache = pokecache.NewCache(5 * time.Minute)
 
 func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
@@ -46,39 +81,10 @@ func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
 
 			api := fmt.Sprintf(location, offset, limit)
 			cachedData, ok := cache.Get(api)
+			data, err := getData(api, cachedData, ok)
 
-			var data Data
-			var err error
-
-			if ok {
-				data, err = decode(cachedData)
-				if err != nil {
-					return []string{}, err
-				}
-			} else {
-				res, err := http.Get(api)
-
-				if err != nil {
-					return locations, errors.New("something went wrong fetching locations")
-				}
-
-				body, err := io.ReadAll(res.Body)
-				res.Body.Close()
-
-				if err != nil {
-					return locations, err
-				}
-
-				if res.StatusCode > 299 {
-					return locations, errors.New(fmt.Sprintf("failed with status code: %d and body: %s", res.StatusCode, body))
-				}
-
-				cache.Add(api, body)
-				data, err = decode(body)
-
-				if err != nil {
-					return locations, err
-				}
+			if err != nil {
+				return locations, err
 			}
 
 			for _, location := range data.Results {
@@ -107,39 +113,10 @@ func newMapBrowser() (func() ([]string, error), func() ([]string, error)) {
 
 			api := fmt.Sprintf(location, offset, limit)
 			cachedData, ok := cache.Get(api)
+			data, err := getData(api, cachedData, ok)
 
-			var data Data
-			var err error
-
-			if ok {
-				data, err = decode(cachedData)
-				if err != nil {
-					return []string{}, err
-				}
-			} else {
-				res, err := http.Get(api)
-
-				if err != nil {
-					return locations, errors.New("something went wrong fetching locations")
-				}
-
-				body, err := io.ReadAll(res.Body)
-				res.Body.Close()
-
-				if err != nil {
-					return locations, err
-				}
-
-				if res.StatusCode > 299 {
-					return locations, errors.New(fmt.Sprintf("failed with status code: %d and body: %s", res.StatusCode, body))
-				}
-
-				cache.Add(api, body)
-				data, err = decode(body)
-
-				if err != nil {
-					return locations, err
-				}
+			if err != nil {
+				return locations, err
 			}
 
 			for _, location := range data.Results {
