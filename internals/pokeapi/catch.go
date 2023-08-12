@@ -319,8 +319,6 @@ func Catch(pk string) error {
 		return err
 	}
 
-	fmt.Println(data.BaseExperience)
-
 	roll := rand.Intn(data.BaseExperience)
 
 	if roll > 40 {

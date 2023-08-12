@@ -122,6 +122,21 @@ var commands map[string]command = map[string]command{
 			return nil
 		},
 	},
+	"inspect": {
+		name:        "inspect [pokemon]",
+		description: "inspect caught pokemon",
+		cb: func(args []string) error {
+
+            if len(args) == 0 {
+                return errors.New("missing argument")
+            }
+
+            pokemon := args[0]
+
+            pokeapi.Inspect(pokemon)
+			return nil
+		},
+	},
 	"exit": {
 		name:        "exit",
 		description: "exit pokecli repl",
