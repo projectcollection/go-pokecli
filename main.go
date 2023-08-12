@@ -96,7 +96,7 @@ var commands map[string]command = map[string]command{
 
 
             fmt.Println("exploring...")
-            fmt.Println("found pokemons:\n")
+            fmt.Println("found pokemons:")
 
 			for _, encounter := range encounters {
 				fmt.Println(encounter.Pokemon.Name)
@@ -134,6 +134,14 @@ var commands map[string]command = map[string]command{
             pokemon := args[0]
 
             pokeapi.Inspect(pokemon)
+			return nil
+		},
+	},
+	"pokedex": {
+		name:        "pokedex",
+		description: "list all caught pokemon",
+		cb: func(arg []string) error {
+            pokeapi.Pokedex()
 			return nil
 		},
 	},
